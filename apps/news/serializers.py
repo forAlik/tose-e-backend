@@ -1,50 +1,48 @@
 from rest_framework import serializers
 from .models import News
-from PIL import Image
-import imghdr
 from django.core.exceptions import ValidationError
+from django_quill.quill import QuillParseError
+from PIL import Image
 
 class NewsSerializer(serializers.ModelSerializer):
-    jalali_created_at = serializers.SerializerMethodField()
-    
+    content_html = serializers.ReadOnlyField()
+    get_jalali_created_at = serializers.ReadOnlyField()
+
     class Meta:
         model = News
-        fields = ['id', 'title', 'content', 'image', 'created_at', 'jalali_created_at']
-        extra_kwargs = {
-            'created_at': {'read_only': True}
-        }
+        fields = [
+            'id',
+            'title',
+            'content',
+            'content_html',
+            'image',
+            'created_at',
+            'get_jalali_created_at',
+            'slug',
+        ]
 
-    def get_jalali_created_at(self, obj):
-        return obj.get_jalali_created_at()
+    def validate_image(self, image):
+        if not image.name.endswith('.webp'):
+            raise serializers.ValidationError("فقط فرمت WEBP قابل قبول است.")
 
-    def validate_image(self, value):
-        if value:
-            if not value.name.lower().endswith('.webp'):
-                raise ValidationError("فقط فایل‌های با فرمت WebP قابل قبول هستند")
-            
-            if value.size > 4 * 1024 * 1024:
-                raise ValidationError("حجم تصویر باید کمتر از 2MB باشد")
-            
-            try:
-                img = Image.open(value)
-                width, height = img.size
-                
-                if width != 600 or height != 400:
-                    raise ValidationError(
-                        f"اندازه تصویر باید دقیقاً 600x400 پیکسل باشد. (تصویر آپلود شده {width}x{height} است)"
-                    )
-                    
-                value.seek(0)
-                if imghdr.what(value) != 'webp':
-                    raise ValidationError("فایل بارگذاری شده یک تصویر WebP معتبر نیست")
-                    
-            except Exception as e:
-                raise ValidationError(f"خطا در پردازش تصویر: {str(e)}")
-            finally:
-                value.seek(0)
-            
-        return value
-    def validate_title(self, value):
-        if len(value) < 5:
-            raise serializers.ValidationError("عنوان خبر باید حداقل 10 کاراکتر باشد")
-        return value
+        if image.size > 4 * 1024 * 1024:
+            raise serializers.ValidationError("حجم تصویر نباید بیشتر از ۴ مگابایت باشد.")
+
+        try:
+            img = Image.open(image)
+            if img.width != 600 or img.height != 400:
+                raise serializers.ValidationError("ابعاد تصویر باید دقیقاً 600x400 پیکسل باشد.")
+        except Exception:
+            raise serializers.ValidationError("خواندن تصویر با مشکل مواجه شد.")
+
+        return image
+
+    def validate_content(self, content):
+        if not content:
+            raise serializers.ValidationError("محتوا نمی‌تواند خالی باشد.")      
+        try:
+            str(content)
+        except QuillParseError:
+            raise serializers.ValidationError("محتوا به درستی قابل parse نیست.")
+        
+        return content
