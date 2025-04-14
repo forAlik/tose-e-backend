@@ -29,7 +29,7 @@ urlpatterns = [
     path('api/users/', include('apps.users.urls')),
     path('api/subnews/', include('apps.subnews.urls')),
     path('api/achievements/', include('apps.achievements.urls')),
-
+    path('api/forms/', include('apps.forms.urls')),
 
     path("auth/api/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("auth/api/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
@@ -37,4 +37,6 @@ urlpatterns = [
 
     #Admin URLs:
     path('admin/', admin.site.urls),
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+]
+
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

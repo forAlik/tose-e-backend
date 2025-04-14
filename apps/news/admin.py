@@ -1,23 +1,21 @@
-from django import forms
 from django.contrib import admin
 from .models import News
 
-class NewsAdminForm(forms.ModelForm):
-    class Meta:
-        model = News
-        fields = '__all__'
-        widgets = {
-            'content': forms.Textarea(attrs={'rows': 10}),  # استفاده از textarea ساده
-        }
-
-@admin.register(News)
 class NewsAdmin(admin.ModelAdmin):
-    form = NewsAdminForm
-    readonly_fields = ('content_html',)  # نمایش نسخه HTML
+    list_display = ('title', 'slug', 'created_at', 'image_preview', 'content')
+    search_fields = ('title', 'slug')
+    list_filter = ('created_at',)
+    ordering = ('-created_at',)
     
-    # تنظیم فیلدهای قابل نمایش
-    list_display = ('title', 'content_preview')
-    
+    def image_preview(self, obj):
+        """این متد برای نمایش پیش‌نمایش تصویر در لیست استفاده می‌شود"""
+        if obj.image:
+            return f'<img src="{obj.image.url}" width="50" height="50" />'
+        return '-'
+    image_preview.allow_tags = True
+
     def content_preview(self, obj):
-        return obj.content_html[:100] + "..." if obj.content_html else ""
-    content_preview.short_description = "پیش نمایش محتوا"
+        return obj.content[:200]
+    content_preview.short_description = 'محتوا (چند خط اول)'
+
+admin.site.register(News, NewsAdmin)

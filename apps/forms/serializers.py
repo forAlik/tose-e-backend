@@ -1,12 +1,13 @@
 from rest_framework import serializers
-from .models import News
+from .models import Forms
 import jdatetime
 from datetime import timedelta
-class NewsSerializer(serializers.ModelSerializer):
+class FormsSerializer(serializers.ModelSerializer):
     created_at_jalali = serializers.SerializerMethodField()
+
     class Meta:
-        model = News
-        fields = ['id', 'title', 'content', 'created_at', 'created_at_jalali', 'image', 'slug']
+        model = Forms
+        fields = ['id', 'subject', 'message', 'created_at', 'created_at_jalali', 'email', 'phone', 'fullname']
 
     def get_created_at_jalali(self, obj):
         if obj.created_at:
