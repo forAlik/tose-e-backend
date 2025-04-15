@@ -5,7 +5,7 @@ diff-match-patch==20181111
 Django
 django-cors-headers==4.7.0
 django-jalali-date==1.1.4
-django-js-asset==3.1.2
+django-js-asset
 django-quill-editor==0.1.42
 djangorestframework==3.16.0
 djangorestframework_simplejwt==5.5.0
